@@ -2,7 +2,6 @@ package dev.latvian.apps.ansi.style;
 
 import dev.latvian.apps.ansi.ANSIContext;
 import dev.latvian.apps.ansi.color.ANSIColor;
-import dev.latvian.apps.ansi.color.Color16;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -74,12 +73,12 @@ public record Style(ANSIColor fg, ANSIColor bg, Boolean b, Boolean i, Boolean u,
 
 	@Override
 	public Style foreground(@Nullable ANSIColor value) {
-		return Objects.equals(fg, value) ? this : isDefault() && value instanceof Color16 c ? c.style() : new Style(value, bg, b, i, u, l, r, h, s);
+		return Objects.equals(fg, value) ? this : value != null && isDefault() ? value.fgStyle() : new Style(value, bg, b, i, u, l, r, h, s);
 	}
 
 	@Override
 	public Style background(@Nullable ANSIColor value) {
-		return Objects.equals(bg, value) ? this : new Style(fg, value, b, i, u, l, r, h, s);
+		return Objects.equals(bg, value) ? this : value != null && isDefault() ? value.bgStyle() : new Style(fg, value, b, i, u, l, r, h, s);
 	}
 
 	@Override

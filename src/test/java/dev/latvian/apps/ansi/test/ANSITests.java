@@ -1,7 +1,7 @@
 package dev.latvian.apps.ansi.test;
 
 import dev.latvian.apps.ansi.ANSI;
-import dev.latvian.apps.ansi.ObjectANSI;
+import dev.latvian.apps.ansi.JavaANSI;
 import dev.latvian.apps.ansi.log.LogType;
 import org.junit.jupiter.api.Test;
 
@@ -54,7 +54,8 @@ public class ANSITests {
 
 	@Test
 	public void object() {
-		var ansi = ObjectANSI.ofObject(Map.of("inum", 10, "fnum", 30.4F, "arr", List.of("a", "b", "c"), "sub", Map.of("t", true, "f", false, "b", List.of()), "empty_map", Map.of()));
+		var ansi = JavaANSI.of(Map.of("inum", 10, "fnum", 30.4F, "arr", List.of("a", "b", "c"), "sub", Map.of("t", true, "f", false, "b", List.of()), "empty_map", Map.of()));
+		// ansi = ANSI.empty(1).append(ansi).lightGray();
 
 		System.out.println(ansi);
 		System.out.println(ansi.toUnformattedString());

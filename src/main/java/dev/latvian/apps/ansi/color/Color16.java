@@ -1,5 +1,6 @@
 package dev.latvian.apps.ansi.color;
 
+import dev.latvian.apps.ansi.ANSISymbols;
 import dev.latvian.apps.ansi.style.Style;
 
 public enum Color16 implements ANSIColor {
@@ -21,7 +22,7 @@ public enum Color16 implements ANSIColor {
 	WHITE("white", 97, 107);
 
 	public static final Color16[] VALUES = values();
-	private static final Color16[] TREE = {RED, GREEN, BLUE, YELLOW};
+	private static final Color16[] TREE = {MAGENTA, PURPLE, BLUE, CYAN};
 
 	public static Color16 tree(int index) {
 		return TREE[index & 3];
@@ -30,22 +31,46 @@ public enum Color16 implements ANSIColor {
 	private final String name;
 	private final char[] foreground;
 	private final char[] background;
-	private final Style style;
+	private Style foregroundStyle;
+	private Style backgroundStyle;
+	private ANSISymbols symbols;
 
 	Color16(String name, int fg, int bg) {
 		this.name = name;
 		this.foreground = String.valueOf(fg).toCharArray();
 		this.background = String.valueOf(bg).toCharArray();
-		this.style = new Style(this, null, null, null, null, null, null, null, null);
+	}
+
+	@Override
+	public Style fgStyle() {
+		if (foregroundStyle == null) {
+			foregroundStyle = new Style(this, null, null, null, null, null, null, null, null);
+		}
+
+		return foregroundStyle;
+	}
+
+	@Override
+	public Style bgStyle() {
+		if (backgroundStyle == null) {
+			backgroundStyle = new Style(null, this, null, null, null, null, null, null, null);
+		}
+
+		return backgroundStyle;
+	}
+
+	@Override
+	public ANSISymbols symbols() {
+		if (symbols == null) {
+			symbols = new ANSISymbols(fgStyle());
+		}
+
+		return symbols;
 	}
 
 	@Override
 	public void push(StringBuilder builder, boolean f) {
 		builder.append(f ? foreground : background);
-	}
-
-	public Style style() {
-		return style;
 	}
 
 	@Override

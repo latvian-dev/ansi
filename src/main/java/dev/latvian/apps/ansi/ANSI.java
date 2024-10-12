@@ -8,6 +8,7 @@ import dev.latvian.apps.ansi.style.Styleable;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -40,15 +41,28 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 				case STRIKETHROUGH -> s;
 			};
 		}
+
+		public boolean hasStyle() {
+			return fg != ANSIColor.NONE || bg != ANSIColor.NONE || b || i || u || l || r || h || s;
+		}
 	}
 
 	public static final char CODE = '\u001B';
 	public static final Pattern PATTERN = Pattern.compile(CODE + "\\[(?:\\d;)?\\d+[mD]");
 	public static final char DEBUG_CODE = '§';
 	private static final char[] RESET = "[0m".toCharArray();
-	public static final ANSI EMPTY = new ANSI("", Style.NONE, true);
-	public static final ANSI SPACE = new ANSI(" ", Style.NONE, true);
-	public static final ANSI LINE = new ANSI("\n", Style.NONE, true);
+	public static final ANSI EMPTY = immutable("");
+	public static final ANSI SPACE = immutable(" ");
+	public static final ANSI LINE = immutable("\n");
+	public static final ANSISymbols SYMBOLS = new ANSISymbols(Style.NONE);
+
+	public static ANSI immutable(String content, Style style) {
+		return new ANSI(content, style, true);
+	}
+
+	public static ANSI immutable(String content) {
+		return immutable(content, Style.NONE);
+	}
 
 	public static ANSI empty(int expectedPartCount) {
 		var result = new ANSI("", Style.NONE, false);
@@ -114,67 +128,67 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 	}
 
 	public static ANSI black(Object text) {
-		return of(text, Color16.BLACK.style());
+		return of(text, Color16.BLACK.fgStyle());
 	}
 
 	public static ANSI darkRed(Object text) {
-		return of(text, Color16.DARK_RED.style());
+		return of(text, Color16.DARK_RED.fgStyle());
 	}
 
 	public static ANSI green(Object text) {
-		return of(text, Color16.GREEN.style());
+		return of(text, Color16.GREEN.fgStyle());
 	}
 
 	public static ANSI orange(Object text) {
-		return of(text, Color16.ORANGE.style());
+		return of(text, Color16.ORANGE.fgStyle());
 	}
 
 	public static ANSI navy(Object text) {
-		return of(text, Color16.NAVY.style());
+		return of(text, Color16.NAVY.fgStyle());
 	}
 
 	public static ANSI purple(Object text) {
-		return of(text, Color16.PURPLE.style());
+		return of(text, Color16.PURPLE.fgStyle());
 	}
 
 	public static ANSI teal(Object text) {
-		return of(text, Color16.TEAL.style());
+		return of(text, Color16.TEAL.fgStyle());
 	}
 
 	public static ANSI lightGray(Object text) {
-		return of(text, Color16.LIGHT_GRAY.style());
+		return of(text, Color16.LIGHT_GRAY.fgStyle());
 	}
 
 	public static ANSI darkGray(Object text) {
-		return of(text, Color16.DARK_GRAY.style());
+		return of(text, Color16.DARK_GRAY.fgStyle());
 	}
 
 	public static ANSI red(Object text) {
-		return of(text, Color16.RED.style());
+		return of(text, Color16.RED.fgStyle());
 	}
 
 	public static ANSI lime(Object text) {
-		return of(text, Color16.LIME.style());
+		return of(text, Color16.LIME.fgStyle());
 	}
 
 	public static ANSI yellow(Object text) {
-		return of(text, Color16.YELLOW.style());
+		return of(text, Color16.YELLOW.fgStyle());
 	}
 
 	public static ANSI blue(Object text) {
-		return of(text, Color16.BLUE.style());
+		return of(text, Color16.BLUE.fgStyle());
 	}
 
 	public static ANSI magenta(Object text) {
-		return of(text, Color16.MAGENTA.style());
+		return of(text, Color16.MAGENTA.fgStyle());
 	}
 
 	public static ANSI cyan(Object text) {
-		return of(text, Color16.CYAN.style());
+		return of(text, Color16.CYAN.fgStyle());
 	}
 
 	public static ANSI white(Object text) {
-		return of(text, Color16.WHITE.style());
+		return of(text, Color16.WHITE.fgStyle());
 	}
 
 	private final String content;
@@ -188,7 +202,7 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 		this.immutable = immutable;
 		this.style = style;
 		this.children = List.of();
-		this.parts = 1;
+		this.parts = content.isEmpty() ? 0 : 1;
 	}
 
 	@Override
@@ -315,17 +329,20 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 
 	private void appendParts(Style s, Part[] parts, int[] index) {
 		s = s.merge(style);
-		parts[index[0]++] = new Part(content,
-			s.fg() == null ? ANSIColor.NONE : s.fg(),
-			s.bg() == null ? ANSIColor.NONE : s.bg(),
-			s.b() != null && s.b(),
-			s.i() != null && s.i(),
-			s.u() != null && s.u(),
-			s.l() != null && s.l(),
-			s.r() != null && s.r(),
-			s.h() != null && s.h(),
-			s.s() != null && s.s()
-		);
+
+		if (!content.isEmpty()) {
+			parts[index[0]++] = new Part(content,
+				s.fg() == null ? ANSIColor.NONE : s.fg(),
+				s.bg() == null ? ANSIColor.NONE : s.bg(),
+				s.b() != null && s.b(),
+				s.i() != null && s.i(),
+				s.u() != null && s.u(),
+				s.l() != null && s.l(),
+				s.r() != null && s.r(),
+				s.h() != null && s.h(),
+				s.s() != null && s.s()
+			);
+		}
 
 		if (!children.isEmpty()) {
 			for (var child : children) {
@@ -361,6 +378,17 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 		boolean hasFormatting = false;
 
 		for (var p : parts()) {
+			if (hasFormatting && !p.hasStyle()) {
+				sb.append(ctx.code());
+				sb.append(RESET);
+				sb.append(p.content);
+				foreground = ANSIColor.NONE;
+				background = ANSIColor.NONE;
+				Arrays.fill(flags, false);
+				hasFormatting = false;
+				continue;
+			}
+
 			boolean code = false;
 			boolean first = true;
 
@@ -388,8 +416,8 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 				}
 			}
 
-			if (!Objects.equals(foreground, p.fg())) {
-				foreground = p.fg();
+			if (!Objects.equals(foreground, p.fg)) {
+				foreground = p.fg;
 
 				if (!code) {
 					code = true;
@@ -407,8 +435,8 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 				foreground.push(sb, true);
 			}
 
-			if (!Objects.equals(background, p.bg())) {
-				background = p.bg();
+			if (!Objects.equals(background, p.bg)) {
+				background = p.bg;
 
 				if (!code) {
 					code = true;
@@ -428,7 +456,7 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 				sb.append('m');
 			}
 
-			sb.append(p.content());
+			sb.append(p.content);
 		}
 
 		if (hasFormatting) {
