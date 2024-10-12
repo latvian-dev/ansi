@@ -31,8 +31,8 @@ public enum Color16 implements ANSIColor {
 	private final String name;
 	private final char[] foreground;
 	private final char[] background;
-	private Style foregroundStyle;
-	private Style backgroundStyle;
+	private Style fgStyle;
+	private Style bgStyle;
 	private ANSISymbols symbols;
 
 	Color16(String name, int fg, int bg) {
@@ -43,20 +43,20 @@ public enum Color16 implements ANSIColor {
 
 	@Override
 	public Style fgStyle() {
-		if (foregroundStyle == null) {
-			foregroundStyle = new Style(this, null, null, null, null, null, null, null, null);
+		if (fgStyle == null) {
+			fgStyle = new Style(this, null, null, null, null, null, null, null, null);
 		}
 
-		return foregroundStyle;
+		return fgStyle;
 	}
 
 	@Override
 	public Style bgStyle() {
-		if (backgroundStyle == null) {
-			backgroundStyle = new Style(null, this, null, null, null, null, null, null, null);
+		if (bgStyle == null) {
+			bgStyle = new Style(null, this, null, null, null, null, null, null, null);
 		}
 
-		return backgroundStyle;
+		return bgStyle;
 	}
 
 	@Override

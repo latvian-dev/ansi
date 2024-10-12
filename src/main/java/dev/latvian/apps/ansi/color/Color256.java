@@ -9,8 +9,8 @@ public final class Color256 implements ANSIColor {
 	private static final char[] BG_CODE = "48;5;".toCharArray();
 
 	private final int code;
-	private Style foregroundStyle;
-	private Style backgroundStyle;
+	private Style fgStyle;
+	private Style bgStyle;
 	private ANSISymbols symbols;
 
 	public Color256(int code) {
@@ -31,20 +31,20 @@ public final class Color256 implements ANSIColor {
 
 	@Override
 	public Style fgStyle() {
-		if (foregroundStyle == null) {
-			foregroundStyle = new Style(this, null, null, null, null, null, null, null, null);
+		if (fgStyle == null) {
+			fgStyle = new Style(this, null, null, null, null, null, null, null, null);
 		}
 
-		return foregroundStyle;
+		return fgStyle;
 	}
 
 	@Override
 	public Style bgStyle() {
-		if (backgroundStyle == null) {
-			backgroundStyle = new Style(null, this, null, null, null, null, null, null, null);
+		if (bgStyle == null) {
+			bgStyle = new Style(null, this, null, null, null, null, null, null, null);
 		}
 
-		return backgroundStyle;
+		return bgStyle;
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package dev.latvian.apps.ansi.test;
 
 import dev.latvian.apps.ansi.ANSI;
 import dev.latvian.apps.ansi.JavaANSI;
+import dev.latvian.apps.ansi.log.Log;
 import dev.latvian.apps.ansi.log.LogType;
 import org.junit.jupiter.api.Test;
 
@@ -13,9 +14,9 @@ public class ANSITests {
 	public void single() {
 		var ansi = ANSI.red("Red & Underlined").underline();
 
-		System.out.println(ansi);
-		System.out.println(ansi.toUnformattedString());
-		System.out.println(ansi.toDebugString());
+		Log.info(ansi);
+		Log.info(ansi.toUnformattedString());
+		Log.info(ansi.toDebugString());
 	}
 
 	@Test
@@ -33,23 +34,23 @@ public class ANSITests {
 			.append(" Default ")
 			.append(ANSI.of("Error!", LogType.ERROR.style()));
 
-		System.out.println(ansi);
-		System.out.println(ansi.toUnformattedString());
-		System.out.println(ansi.toDebugString());
+		Log.info(ansi);
+		Log.info(ansi.toUnformattedString());
+		Log.info(ansi.toDebugString());
 	}
 
 	@Test
 	public void reverse() {
 		var ansi = ANSI.empty()
-			.lime()
-			.darkGrayBG()
+			.foreground(218)
+			.background(0xFF3F2B45)
 			.append(" Text 1 ")
 			.append(ANSI.of(" Text 2 ").reverse())
 			.append(" Text 3 ");
 
-		System.out.println(ansi);
-		System.out.println(ansi.toUnformattedString());
-		System.out.println(ansi.toDebugString());
+		Log.info(ansi);
+		Log.info(ansi.toUnformattedString());
+		Log.info(ansi.toDebugString());
 	}
 
 	@Test
@@ -57,8 +58,8 @@ public class ANSITests {
 		var ansi = JavaANSI.of(Map.of("inum", 10, "fnum", 30.4F, "arr", List.of("a", "b", "c"), "sub", Map.of("t", true, "f", false, "b", List.of()), "empty_map", Map.of()));
 		// ansi = ANSI.empty(1).append(ansi).lightGray();
 
-		System.out.println(ansi);
-		System.out.println(ansi.toUnformattedString());
-		System.out.println(ansi.toDebugString());
+		Log.info(ansi);
+		Log.info(ansi.toUnformattedString());
+		Log.info(ansi.toDebugString());
 	}
 }

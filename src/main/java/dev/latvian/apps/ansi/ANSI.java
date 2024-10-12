@@ -75,11 +75,11 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 	}
 
 	public static ANSI of(Object text, Style style) {
-		return text instanceof ANSI a ? new ANSI(a.content, a.style.merge(style), false) : new ANSI(String.valueOf(text), style, false);
+		return text instanceof ANSI a ? a.copy().styled(style) : new ANSI(String.valueOf(text), style, false);
 	}
 
 	public static ANSI of(Object text) {
-		return text instanceof ANSI a ? new ANSI(a.content, a.style, false) : new ANSI(String.valueOf(text), Style.NONE, false);
+		return text instanceof ANSI a ? a.copy() : new ANSI(String.valueOf(text), Style.NONE, false);
 	}
 
 	public static ANSI join(@Nullable ANSI delimiter, ANSI... ansi) {

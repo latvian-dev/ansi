@@ -14,6 +14,14 @@ public interface Styleable<T extends Styleable<T>> {
 
 	T background(@Nullable ANSIColor value);
 
+	default T foreground(int color) {
+		return foreground(ANSIColor.of(color));
+	}
+
+	default T background(int color) {
+		return background(ANSIColor.of(color));
+	}
+
 	default T colors(@Nullable ANSIColor foregroundValue, @Nullable ANSIColor backgroundValue) {
 		return foreground(foregroundValue).background(backgroundValue);
 	}
