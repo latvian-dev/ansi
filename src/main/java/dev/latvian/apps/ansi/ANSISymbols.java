@@ -16,6 +16,7 @@ public record ANSISymbols(
 	ANSI col,
 	ANSI dot
 ) {
+	public static final ANSISymbols DEFAULT = new ANSISymbols(Style.NONE);
 
 	public ANSISymbols(Style style) {
 		this(style,

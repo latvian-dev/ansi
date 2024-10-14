@@ -2,17 +2,17 @@ package dev.latvian.apps.ansi;
 
 @FunctionalInterface
 public interface ANSISupplier {
-	ANSI getANSI();
+	ANSI toANSI();
 
 	default String toANSIString() {
-		return getANSI().build(ANSIContext.NONE);
+		return toANSI().build(ANSIContext.NONE);
 	}
 
 	default String toDebugString() {
-		return getANSI().build(new ANSIContext(1));
+		return toANSI().build(new ANSIContext(1));
 	}
 
 	default String toUnformattedString() {
-		return getANSI().build(ANSIContext.UNFORMATTED);
+		return toANSI().build(ANSIContext.UNFORMATTED);
 	}
 }

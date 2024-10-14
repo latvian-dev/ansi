@@ -35,7 +35,7 @@ public interface JavaANSI {
 			return NULL;
 		} else if (object instanceof Map<?, ?> map) {
 			var builder = ANSI.empty(map.size() * 2 - 1 + 2).tree(depth);
-			builder.append(ANSI.SYMBOLS.lc());
+			builder.append(ANSISymbols.DEFAULT.lc());
 			boolean first = true;
 
 			for (var entry : map.entrySet()) {
@@ -49,11 +49,11 @@ public interface JavaANSI {
 				builder.append(of0(entry.getValue(), depth + 1));
 			}
 
-			builder.append(ANSI.SYMBOLS.rc());
+			builder.append(ANSISymbols.DEFAULT.rc());
 			return builder;
 		} else if (object instanceof Iterable<?> itr) {
 			var builder = ANSI.empty(itr instanceof Collection<?> c ? (c.size() * 2 - 1 + 2) : 10).tree(depth);
-			builder.append(ANSI.SYMBOLS.ls());
+			builder.append(ANSISymbols.DEFAULT.ls());
 			boolean first = true;
 
 			for (var e : itr) {
@@ -66,7 +66,7 @@ public interface JavaANSI {
 				builder.append(of0(e, depth + 1));
 			}
 
-			builder.append(ANSI.SYMBOLS.rs());
+			builder.append(ANSISymbols.DEFAULT.rs());
 			return builder;
 		} else if (object instanceof CharSequence) {
 			return ANSI.yellow("\"" + object + "\"");
@@ -77,7 +77,7 @@ public interface JavaANSI {
 		} else if (object.getClass().isRecord()) {
 			var components = object.getClass().getRecordComponents();
 			var builder = ANSI.empty(components.length * 2 - 1 + 2).tree(depth);
-			builder.append(ANSI.SYMBOLS.lc());
+			builder.append(ANSISymbols.DEFAULT.lc());
 			boolean first = true;
 
 			for (var component : components) {
@@ -95,10 +95,10 @@ public interface JavaANSI {
 				}
 			}
 
-			builder.append(ANSI.SYMBOLS.rc());
+			builder.append(ANSISymbols.DEFAULT.rc());
 			return builder;
 		} else if (object instanceof ANSISupplier supplier) {
-			return supplier.getANSI();
+			return supplier.toANSI();
 		} else if (object.getClass().isEnum()) {
 			return ANSI.yellow(object);
 		} else {

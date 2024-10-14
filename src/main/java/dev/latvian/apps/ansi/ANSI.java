@@ -54,7 +54,6 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 	public static final ANSI EMPTY = immutable("");
 	public static final ANSI SPACE = immutable(" ");
 	public static final ANSI LINE = immutable("\n");
-	public static final ANSISymbols SYMBOLS = new ANSISymbols(Style.NONE);
 
 	public static ANSI immutable(String content, Style style) {
 		return new ANSI(content, style, true);
@@ -75,11 +74,11 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 	}
 
 	public static ANSI of(Object text, Style style) {
-		return text instanceof ANSI a ? a.copy().styled(style) : new ANSI(String.valueOf(text), style, false);
+		return text instanceof ANSISupplier a ? a.toANSI().styled(style) : new ANSI(String.valueOf(text), style, false);
 	}
 
 	public static ANSI of(Object text) {
-		return text instanceof ANSI a ? a.copy() : new ANSI(String.valueOf(text), Style.NONE, false);
+		return text instanceof ANSISupplier a ? a.toANSI() : new ANSI(String.valueOf(text), Style.NONE, false);
 	}
 
 	public static ANSI join(@Nullable ANSI delimiter, ANSI... ansi) {
@@ -206,8 +205,23 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 	}
 
 	@Override
-	public ANSI getANSI() {
-		return this;
+	public ANSI toANSI() {
+		return copy();
+	}
+
+	@Override
+	public String toANSIString() {
+		return build(ANSIContext.NONE);
+	}
+
+	@Override
+	public String toDebugString() {
+		return build(new ANSIContext(1));
+	}
+
+	@Override
+	public String toUnformattedString() {
+		return build(ANSIContext.UNFORMATTED);
 	}
 
 	public ANSI withStyle(Style style) {
@@ -228,7 +242,7 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 	}
 
 	public ANSI append(ANSI child) {
-		if (child == EMPTY) {
+		if (child.immutable && child.content.isEmpty() && child.children.isEmpty()) {
 			return this;
 		} else if (immutable) {
 			return new ANSI(content, style, false).append(child);
@@ -353,7 +367,7 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 
 	public String build(ANSIContext ctx) {
 		if (children.isEmpty()) {
-			if (ctx.unformatted() || style.isDefault()) {
+			if (content.isEmpty() || ctx.unformatted() || style.isDefault()) {
 				return content;
 			} else {
 				var sb = new StringBuilder(6 + content.length() + 2);
@@ -491,5 +505,23 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 	@Override
 	public ANSI colors(@Nullable ANSIColor foregroundValue, @Nullable ANSIColor backgroundValue) {
 		return withStyle(style.colors(foregroundValue, backgroundValue));
+	}
+
+	public ANSI repeat(int times) {
+		return times <= 0 && immutable && style.isDefault() ? EMPTY : new ANSI(times <= 0 ? "" : content.repeat(times), style, false);
+	}
+
+	public ANSI flatten() {
+		if (children.isEmpty()) {
+			return copy();
+		}
+
+		var result = new StringBuilder();
+
+		for (var part : parts()) {
+			result.append(part.content);
+		}
+
+		return new ANSI(result.toString(), style, false);
 	}
 }
