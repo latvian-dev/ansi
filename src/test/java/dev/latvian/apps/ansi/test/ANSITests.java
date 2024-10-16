@@ -10,6 +10,13 @@ import java.util.List;
 import java.util.Map;
 
 public class ANSITests {
+	private static final ANSI TEST_123 = ANSI.empty()
+		.foreground(218)
+		.background(0xFF3F2B45)
+		.append(" Text 1 ")
+		.append(ANSI.of(" Text 2 ").reverse())
+		.append(" Text 3 ");
+
 	@Test
 	public void single() {
 		var ansi = ANSI.red("Red & Underlined").underline();
@@ -41,12 +48,7 @@ public class ANSITests {
 
 	@Test
 	public void reverse() {
-		var ansi = ANSI.empty()
-			.foreground(218)
-			.background(0xFF3F2B45)
-			.append(" Text 1 ")
-			.append(ANSI.of(" Text 2 ").reverse())
-			.append(" Text 3 ");
+		var ansi = TEST_123;
 
 		Log.info(ansi);
 		Log.info(ansi.toUnformattedString());
@@ -65,14 +67,16 @@ public class ANSITests {
 
 	@Test
 	public void trim() {
-		var ansi = ANSI.empty()
-			.foreground(218)
-			.background(0xFF3F2B45)
-			.append(" Text 1 ")
-			.append(ANSI.of(" Text 2 ").reverse())
-			.append(" Text 3 ");
+		var ansi = ANSI.empty().append("<START>").append(TEST_123.trim(12)).append("<END>");
 
-		ansi = ANSI.empty().append("<START>").append(ansi.trim(12)).append("<END>");
+		Log.info(ansi);
+		Log.info(ansi.toUnformattedString());
+		Log.info(ansi.toDebugString());
+	}
+
+	@Test
+	public void chars() {
+		var ansi = ANSI.join(ANSI.of(", "), TEST_123.toCharacterArray());
 
 		Log.info(ansi);
 		Log.info(ansi.toUnformattedString());

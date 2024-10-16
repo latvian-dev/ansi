@@ -74,11 +74,17 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 	}
 
 	public static ANSI of(Object text, Style style) {
-		return text instanceof ANSISupplier a ? a.toANSI().styled(style) : new ANSI(String.valueOf(text), style, false);
+		if (text instanceof ANSI ansi) {
+			return style.isDefault() ? ansi : ansi.copy().styled(style);
+		} else if (text instanceof ANSISupplier a) {
+			return style.isDefault() ? a.toANSI() : a.toANSI().styled(style);
+		} else {
+			return new ANSI(String.valueOf(text), style, false);
+		}
 	}
 
 	public static ANSI of(Object text) {
-		return text instanceof ANSISupplier a ? a.toANSI() : new ANSI(String.valueOf(text), Style.NONE, false);
+		return of(text, Style.NONE);
 	}
 
 	public static ANSI join(@Nullable ANSI delimiter, ANSI... ansi) {
@@ -570,6 +576,28 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 			}
 
 			return result;
+		}
+	}
+
+	public ANSI[] toCharacterArray() {
+		var chars = new ANSI[length()];
+		toCharacterArray0(Style.NONE, chars, new int[1]);
+		return chars;
+	}
+
+	private void toCharacterArray0(Style s, ANSI[] chars, int[] index) {
+		s = s.merge(style);
+
+		if (!content.isEmpty()) {
+			for (var c : content.toCharArray()) {
+				chars[index[0]++] = new ANSI(String.valueOf(c), s, false);
+			}
+		}
+
+		if (!children.isEmpty()) {
+			for (var child : children) {
+				child.toCharacterArray0(s, chars, index);
+			}
 		}
 	}
 }
