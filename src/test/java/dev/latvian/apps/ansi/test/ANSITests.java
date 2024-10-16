@@ -62,4 +62,20 @@ public class ANSITests {
 		Log.info(ansi.toUnformattedString());
 		Log.info(ansi.toDebugString());
 	}
+
+	@Test
+	public void trim() {
+		var ansi = ANSI.empty()
+			.foreground(218)
+			.background(0xFF3F2B45)
+			.append(" Text 1 ")
+			.append(ANSI.of(" Text 2 ").reverse())
+			.append(" Text 3 ");
+
+		ansi = ANSI.empty().append("<START>").append(ansi.trim(12)).append("<END>");
+
+		Log.info(ansi);
+		Log.info(ansi.toUnformattedString());
+		Log.info(ansi.toDebugString());
+	}
 }

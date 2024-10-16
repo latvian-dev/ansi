@@ -524,4 +524,52 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 
 		return new ANSI(result.toString(), style, false);
 	}
+
+	public int length() {
+		int len = content.length();
+
+		if (!children.isEmpty()) {
+			for (var child : children) {
+				len += child.length();
+			}
+		}
+
+		return len;
+	}
+
+	public ANSI trim(int toLength) {
+		return trim0(toLength).copy();
+	}
+
+	private ANSI trim0(int toLength) {
+		if (toLength <= 0) {
+			return EMPTY;
+		} else if (children.isEmpty()) {
+			if (toLength >= content.length()) {
+				return this;
+			} else {
+				return new ANSI(content.substring(0, toLength), style, false);
+			}
+		} else if (content.length() == toLength) {
+			return new ANSI(content, style, false);
+		} else if (content.length() > toLength) {
+			return new ANSI(content.substring(0, toLength), style, false);
+		} else {
+			var result = new ANSI(content, style, false);
+
+			for (var c : children) {
+				int len = c.length();
+
+				if (toLength - len >= 0) {
+					result.append(c);
+					toLength -= len;
+				} else {
+					result.append(c.trim0(toLength));
+					break;
+				}
+			}
+
+			return result;
+		}
+	}
 }
