@@ -68,6 +68,8 @@ public interface JavaANSI {
 
 			builder.append(ANSISymbols.DEFAULT.rs());
 			return builder;
+		} else if (object instanceof Character) {
+			return ANSI.yellow("'" + object + "'");
 		} else if (object instanceof CharSequence) {
 			return ANSI.yellow("\"" + object + "\"");
 		} else if (object instanceof Boolean b) {
