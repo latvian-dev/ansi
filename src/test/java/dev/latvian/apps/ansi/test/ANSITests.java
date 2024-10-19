@@ -11,8 +11,8 @@ import java.util.Map;
 
 public class ANSITests {
 	private static final ANSI TEST_123 = ANSI.empty()
-		.foreground(218)
-		.background(0xFF3F2B45)
+		.foreground(224)
+		.background(96)
 		.append(" Text 1 ")
 		.append(ANSI.of(" Text 2 ").reverse())
 		.append(" Text 3 ");
