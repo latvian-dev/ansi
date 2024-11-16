@@ -10,8 +10,12 @@ public class LogInstance implements Supplier<Log> {
 		this.log = log;
 	}
 
+	public void replace(Log log) {
+		this.log = log;
+	}
+
 	public void replace(UnaryOperator<Log> log) {
-		this.log = log.apply(this.log);
+		replace(log.apply(this.log));
 	}
 
 	@Override

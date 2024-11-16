@@ -3,7 +3,7 @@ package dev.latvian.apps.ansi.log;
 import dev.latvian.apps.ansi.color.Color16;
 
 public interface Log {
-	LogInstance INSTANCE = new LogInstance(new DefaultLog(System.out::println, Color16.CYAN.fgStyle()));
+	LogInstance INSTANCE = new LogInstance(new DefaultLog(System.out, Color16.CYAN.fgStyle()));
 
 	static void info(Object message) {
 		INSTANCE.get().log(LogType.INFO, message);

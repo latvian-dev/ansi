@@ -17,18 +17,6 @@ import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
 public final class ANSI implements ANSISupplier, Styleable<ANSI> {
-	/*
-	// SEQ 1 - [s [9999;9999H [6n [u
-	// SE1 2 - [2J [9999;9999H [6n [1;1H
-
-	// [2J - clear screen
-	// [s - save cursor position
-	// [u - restore cursor position
-	// [9999;9999H - move cursor to bottom right
-	// [6n - get cursor position (R terminates)
-	// [1;1H - move cursor to top left
-	 */
-
 	public record Part(String content, ANSIColor fg, ANSIColor bg, boolean b, boolean i, boolean u, boolean l, boolean r, boolean h, boolean s) {
 		public boolean get(StyleFlag flag) {
 			return switch (flag) {
@@ -45,6 +33,20 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 		public boolean hasStyle() {
 			return fg != ANSIColor.NONE || bg != ANSIColor.NONE || b || i || u || l || r || h || s;
 		}
+
+		public Style style() {
+			return new Style(
+				fg == ANSIColor.NONE ? null : fg,
+				bg == ANSIColor.NONE ? null : bg,
+				b ? Boolean.TRUE : null,
+				i ? Boolean.TRUE : null,
+				u ? Boolean.TRUE : null,
+				l ? Boolean.TRUE : null,
+				r ? Boolean.TRUE : null,
+				h ? Boolean.TRUE : null,
+				s ? Boolean.TRUE : null
+			);
+		}
 	}
 
 	public static final char CODE = '\u001B';
@@ -54,6 +56,8 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 	public static final ANSI EMPTY = immutable("");
 	public static final ANSI SPACE = immutable(" ");
 	public static final ANSI LINE = immutable("\n");
+	public static final ANSI COMMA = immutable(",");
+	public static final ANSI COMMA_SPACE = immutable(", ");
 
 	public static ANSI immutable(String content, Style style) {
 		return new ANSI(content, style, true);
@@ -74,24 +78,26 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 	}
 
 	public static ANSI of(Object text, Style style) {
-		if (text instanceof ANSI ansi) {
-			return style.isDefault() ? ansi : ansi.copy().styled(style);
-		} else if (text instanceof ANSISupplier a) {
-			return style.isDefault() ? a.toANSI() : a.toANSI().styled(style);
+		if (text instanceof ANSISupplier a) {
+			return style.isDefault() ? a.toANSI() : a.toANSI().copy().styled(style);
 		} else {
 			return new ANSI(String.valueOf(text), style, false);
 		}
 	}
 
 	public static ANSI of(Object text) {
-		return of(text, Style.NONE);
+		if (text instanceof ANSISupplier a) {
+			return a.toANSI();
+		} else {
+			return new ANSI(String.valueOf(text), Style.NONE, false);
+		}
 	}
 
-	public static ANSI join(@Nullable ANSI delimiter, ANSI... ansi) {
+	public static ANSI join(@Nullable ANSI delimiter, ANSISupplier... ansi) {
 		if (ansi.length == 0) {
 			return empty();
 		} else if (ansi.length == 1) {
-			return ansi[0];
+			return ansi[0].toANSI();
 		}
 
 		boolean d = delimiter != null && delimiter != EMPTY;
@@ -202,7 +208,7 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 	private List<ANSI> children;
 	private int parts;
 
-	private ANSI(String content, Style style, boolean immutable) {
+	ANSI(String content, Style style, boolean immutable) {
 		this.content = content;
 		this.immutable = immutable;
 		this.style = style;
@@ -212,7 +218,7 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 
 	@Override
 	public ANSI toANSI() {
-		return copy();
+		return this;
 	}
 
 	@Override
@@ -259,6 +265,25 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 		children.add(child);
 		parts += child.parts;
 		return this;
+	}
+
+	public ANSI append(String text) {
+		if (text.isEmpty()) {
+			return this;
+		} else if (text.length() == 1) {
+			return append(switch (text.charAt(0)) {
+				case ' ' -> SPACE;
+				case '\n' -> LINE;
+				case ',' -> COMMA;
+				default -> new ANSI(text, Style.NONE, true);
+			});
+		} else {
+			return append(new ANSI(text, Style.NONE, true));
+		}
+	}
+
+	public ANSI append(ANSISupplier ansi) {
+		return append(ansi.toANSI());
 	}
 
 	public ANSI append(Object text) {
@@ -337,6 +362,12 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 		return result;
 	}
 
+	public StyledString[] styledParts() {
+		var result = new StyledString[parts];
+		appendStyledParts(Style.NONE, result, new int[1]);
+		return result;
+	}
+
 	public void appendPartContent(StringBuilder builder) {
 		builder.append(content);
 
@@ -367,6 +398,20 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 		if (!children.isEmpty()) {
 			for (var child : children) {
 				child.appendParts(s, parts, index);
+			}
+		}
+	}
+
+	private void appendStyledParts(Style s, StyledString[] parts, int[] index) {
+		s = s.merge(style);
+
+		if (!content.isEmpty()) {
+			parts[index[0]++] = new StyledString(content, s);
+		}
+
+		if (!children.isEmpty()) {
+			for (var child : children) {
+				child.appendStyledParts(s, parts, index);
 			}
 		}
 	}
@@ -544,10 +589,6 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 	}
 
 	public ANSI trim(int toLength) {
-		return trim0(toLength).copy();
-	}
-
-	private ANSI trim0(int toLength) {
 		if (toLength <= 0) {
 			return EMPTY;
 		} else if (children.isEmpty()) {
@@ -570,7 +611,7 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 					result.append(c);
 					toLength -= len;
 				} else {
-					result.append(c.trim0(toLength));
+					result.append(c.trim(toLength));
 					break;
 				}
 			}
@@ -579,18 +620,22 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 		}
 	}
 
-	public ANSI[] toCharacterArray() {
-		var chars = new ANSI[length()];
+	public StyledCharacter[] toCharacterArray() {
+		var chars = new StyledCharacter[length()];
 		toCharacterArray0(Style.NONE, chars, new int[1]);
 		return chars;
 	}
 
-	private void toCharacterArray0(Style s, ANSI[] chars, int[] index) {
+	private void toCharacterArray0(Style s, StyledCharacter[] chars, int[] index) {
 		s = s.merge(style);
 
 		if (!content.isEmpty()) {
-			for (var c : content.toCharArray()) {
-				chars[index[0]++] = new ANSI(String.valueOf(c), s, false);
+			if (content.length() == 1) {
+				chars[index[0]++] = new StyledCharacter(content.charAt(0), s);
+			} else {
+				for (var c : content.toCharArray()) {
+					chars[index[0]++] = new StyledCharacter(c, s);
+				}
 			}
 		}
 
@@ -599,5 +644,63 @@ public final class ANSI implements ANSISupplier, Styleable<ANSI> {
 				child.toCharacterArray0(s, chars, index);
 			}
 		}
+	}
+
+	public List<List<StyledString>> lines(int maxLength) {
+		if (maxLength <= 0 || children.isEmpty() && content.isEmpty()) {
+			return List.of();
+		}
+
+		var result = new ArrayList<List<StyledString>>(1);
+		var currentString = new StringBuilder();
+		Style currentStyle = null;
+		int len = 0;
+
+		var currentLine = new ArrayList<StyledString>(1);
+
+		for (var ch : toCharacterArray()) {
+			if (ch.content() == '\n') {
+				if (currentStyle != null && !currentString.isEmpty()) {
+					currentLine.add(new StyledString(currentString.toString(), currentStyle));
+				}
+
+				result.add(currentLine);
+				currentLine = new ArrayList<>(1);
+				currentString.setLength(0);
+				currentStyle = null;
+				len = 0;
+			} else {
+				if (currentStyle == null || !currentStyle.equals(ch.style())) {
+					if (!currentString.isEmpty()) {
+						currentLine.add(new StyledString(currentString.toString(), currentStyle == null ? Style.NONE : currentStyle));
+						currentString.setLength(0);
+					}
+
+					currentStyle = ch.style();
+				}
+
+				currentString.append(ch.content());
+				len++;
+
+				if (len == maxLength) {
+					if (currentStyle != null && !currentString.isEmpty()) {
+						currentLine.add(new StyledString(currentString.toString(), currentStyle));
+					}
+
+					result.add(currentLine);
+					currentLine = new ArrayList<>(1);
+					currentString.setLength(0);
+					currentStyle = null;
+					len = 0;
+				}
+			}
+		}
+
+		if (currentStyle != null && !currentString.isEmpty()) {
+			currentLine.add(new StyledString(currentString.toString(), currentStyle));
+			result.add(currentLine);
+		}
+
+		return result;
 	}
 }
