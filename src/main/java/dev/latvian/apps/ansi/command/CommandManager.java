@@ -50,13 +50,15 @@ public class CommandManager {
 		var args = new HashMap<String, String>(cmd.args().size());
 
 		for (int i = 1; i < input.length; i++) {
-			var a = i < cmd.args().size() - 1 ? cmd.args().get(i - 1) : null;
+			int ai = i - 1;
+			var a = ai < cmd.args().size() ? cmd.args().get(ai) : null;
 
 			if (a != null) {
 				if (a.endsWith("...")) {
 					var remaining = new String[input.length - i];
 					System.arraycopy(input, i, remaining, 0, remaining.length);
-					args.put(a, String.join(" ", remaining));
+					args.put(a.substring(0, a.length() - 3), String.join(" ", remaining));
+					break;
 				} else {
 					args.put(a, input[i]);
 				}
